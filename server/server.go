@@ -3,8 +3,11 @@ package server
 import (
 	"fmt"
 	"net"
+	// "github.com/k1LoW/tcpdp/dumper"
+	// "github.com/k1LoW/tcpdp/dumper/mysql"
 )
 
+// Server struct
 type Server struct {
 	listenAddr *net.TCPAddr
 }
@@ -22,11 +25,23 @@ func (s *Server) Start() error {
 	}
 	defer listener.Close()
 
-	conn, err := listener.Accept()
-	if err != nil {
-		return err
+	for {
+		conn, err := listener.AcceptTCP()
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+
+		go handleConn(conn)
 	}
+}
+
+func handleConn(conn *net.TCPConn) error {
 	defer conn.Close()
+	// d := mysql.NewDumper()
+	// direction := dumper.ClientToRemote
+	// connMetadata := d.NewConnMetadata()
+	// additional := []dumper.DumpValue{}
 
 	fmt.Print("client message:")
 	buf := make([]byte, 1024)
@@ -38,7 +53,10 @@ func (s *Server) Start() error {
 		if err != nil {
 			return err
 		}
-		fmt.Print(string(buf[:n]))
+		b := buf[:n]
+		fmt.Print(string(b))
+		// d.Dump(b, direction, connMetadata, additional)
 	}
+
 	return nil
 }
